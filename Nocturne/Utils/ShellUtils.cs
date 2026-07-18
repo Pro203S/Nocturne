@@ -4,6 +4,8 @@ namespace Nocturne.Utils
 {
     public class ShellUtils
     {
+        private static readonly List<string> InputHistory = [];
+
         public static string GetMultiLineInput()
         {
             StringBuilder command = new();
@@ -95,6 +97,8 @@ namespace Nocturne.Utils
             StringBuilder input = new();
             Stack<string> undo = new();
             Stack<string> redo = new();
+            int historyIndex = InputHistory.Count;
+            string draft = "";
 
             while (true)
             {
@@ -104,8 +108,41 @@ namespace Nocturne.Utils
 
                 if (key.Key == ConsoleKey.Enter)
                 {
+                    string value = input.ToString();
+
+                    if (cwd is not null &&
+                        value.Length > 0 &&
+                        (InputHistory.Count == 0 || InputHistory[^1] != value))
+                    {
+                        InputHistory.Add(value);
+                    }
+
                     Console.WriteLine();
-                    return input.ToString();
+                    return value;
+                }
+
+                if (cwd is not null &&
+                    (key.Key == ConsoleKey.UpArrow || key.Key == ConsoleKey.DownArrow))
+                {
+                    int newIndex = key.Key == ConsoleKey.UpArrow
+                        ? Math.Max(0, historyIndex - 1)
+                        : Math.Min(InputHistory.Count, historyIndex + 1);
+
+                    if (newIndex != historyIndex)
+                    {
+                        if (historyIndex == InputHistory.Count)
+                        {
+                            draft = input.ToString();
+                        }
+
+                        undo.Push(input.ToString());
+                        redo.Clear();
+                        historyIndex = newIndex;
+                        input.Clear().Append(
+                            historyIndex == InputHistory.Count ? draft : InputHistory[historyIndex]);
+                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                    }
+                    continue;
                 }
 
                 if (control && key.Key == ConsoleKey.Z)

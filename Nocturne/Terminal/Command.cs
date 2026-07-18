@@ -5,7 +5,11 @@ namespace Nocturne.Terminal
         private static readonly Dictionary<string, TerminalCommand> Commands =
             new(StringComparer.OrdinalIgnoreCase)
             {
-                ["cd"] = new ChangeDirectory()
+                ["cd"] = new ChangeDirectory(),
+                ["get"] = new GetEnvironment(),
+                ["set"] = new SetEnvironment(),
+                ["unset"] = new RemoveEnvironment(),
+                ["echo"] = new Echo()
             };
 
         public static bool TryExecute(string input, Shell shell)
