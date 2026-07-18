@@ -29,6 +29,12 @@ namespace Nocturne
                 string? input = GetInput();
                 if (string.IsNullOrEmpty(input)) continue;
 
+                if (HasLineContinuation(input))
+                {
+                    Profile.Execute(input[..^1] + GetMultiLineInput());
+                    continue;
+                }
+
                 if (input.Trim() == "exit")
                 {
                     Environment.Exit(0);
@@ -41,6 +47,42 @@ namespace Nocturne
                     continue;
                 }
             }
+        }
+
+        static string GetMultiLineInput()
+        {
+            StringBuilder command = new();
+
+            while (true)
+            {
+                Console.Write("        ");
+                string? input = Console.ReadLine();
+
+                if (input is null)
+                {
+                    return command.ToString();
+                }
+
+                if (HasLineContinuation(input))
+                {
+                    command.Append(input.AsSpan(0, input.Length - 1));
+                    continue;
+                }
+
+                return command.Append(input).ToString();
+            }
+        }
+
+        static bool HasLineContinuation(string input)
+        {
+            int caretCount = 0;
+
+            for (int i = input.Length - 1; i >= 0 && input[i] == '^'; i--)
+            {
+                caretCount++;
+            }
+
+            return (caretCount & 1) != 0;
         }
 
         static string? GetInput()
