@@ -1,3 +1,4 @@
+using Nocturne.Commands;
 using Nocturne.Terminal;
 using Nocturne.Utils;
 
@@ -33,12 +34,14 @@ namespace Nocturne
                 }
                 #endregion
 
-
+                // 슬래시 커맨드 아닐때
                 if (input[0] != '/')
                 {
                     Profile.Execute(input, Cwd);
                     return;
                 }
+
+                SlashCommand.TryExecute(input, this);
             }
             catch (Exception e)
             {

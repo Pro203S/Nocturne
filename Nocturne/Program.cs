@@ -12,7 +12,7 @@ namespace Nocturne
 
             Shell shell = new()
             {
-                Cwd = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                Cwd = args.ElementAtOrDefault(0) ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
             };
 
             Profile.Load();
