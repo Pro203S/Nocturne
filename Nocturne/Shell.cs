@@ -27,9 +27,8 @@ namespace Nocturne
                     return;
                 }
 
-                if (ChangeDirectory.TryExecute(input, Cwd, out string newCwd))
+                if (TerminalCommand.TryExecute(input, this))
                 {
-                    Cwd = newCwd;
                     return;
                 }
                 #endregion

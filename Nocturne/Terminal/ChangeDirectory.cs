@@ -1,31 +1,23 @@
 namespace Nocturne.Terminal
 {
-    public static class ChangeDirectory
+    public sealed class ChangeDirectory : TerminalCommand
     {
-        public static bool TryExecute(string input, string cwd, out string newCwd)
+        protected override void Execute(string arguments, Shell shell)
         {
-            newCwd = cwd;
-
-            if (input.Equals("cd", StringComparison.OrdinalIgnoreCase))
+            if (arguments.Length == 0)
             {
-                Console.WriteLine(cwd);
-                return true;
+                Console.WriteLine(shell.Cwd);
+                return;
             }
 
-            if (!input.StartsWith("cd ", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            string path = input[3..].Trim();
+            string path = arguments;
 
             if (path.StartsWith("/d ", StringComparison.OrdinalIgnoreCase))
             {
                 path = path[3..].Trim();
             }
 
-            newCwd = ResolvePath(path, cwd);
-            return true;
+            shell.Cwd = ResolvePath(path, shell.Cwd);
         }
 
         private static string ResolvePath(string path, string cwd)
