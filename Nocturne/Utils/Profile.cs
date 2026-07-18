@@ -71,7 +71,34 @@ set NOCTURNE_HELP_MSG=true
 
             using Process process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start the profile command.");
-            process.WaitForExit();
+
+            ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
+            {
+                eventArgs.Cancel = true;
+
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                }
+                catch
+                {
+                    // The process may exit while Ctrl+C is being handled.
+                }
+            };
+
+            Console.CancelKeyPress += cancelHandler;
+
+            try
+            {
+                process.WaitForExit();
+            }
+            finally
+            {
+                Console.CancelKeyPress -= cancelHandler;
+            }
         }
     }
 }
