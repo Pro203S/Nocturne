@@ -1,0 +1,190 @@
+using System.Text;
+
+namespace Nocturne.Utils
+{
+    public class ShellUtils
+    {
+        public static string GetMultiLineInput()
+        {
+            StringBuilder command = new();
+
+            while (true)
+            {
+                const string prompt = "        ";
+                Console.Write(prompt);
+                string? input = ReadLine(prompt);
+
+                if (input is null)
+                {
+                    return command.ToString();
+                }
+
+                if (HasLineContinuation(input))
+                {
+                    command.Append(input.AsSpan(0, input.Length - 1));
+                    continue;
+                }
+
+                return command.Append(input).ToString();
+            }
+        }
+
+        public static bool HasLineContinuation(string input)
+        {
+            int caretCount = 0;
+
+            for (int i = input.Length - 1; i >= 0 && input[i] == '^'; i--)
+            {
+                caretCount++;
+            }
+
+            return (caretCount & 1) != 0;
+        }
+
+        public static string? GetInput(string cwd)
+        {
+            string userName = Environment.UserName;
+            string computerName = Environment.MachineName;
+
+            Console.Write("{0}{1}{2}{3}{4}{5}{6}{4}\n",
+                Colors.Blue("┌─["),
+                Colors.Bold(Colors.BrightGreen(userName)),
+                Colors.BrightBlue("@"),
+                Colors.Bold(Colors.BrightBlue(computerName)),
+                Colors.Blue("]"),
+                Colors.Blue("──["),
+                Colors.Bold(Colors.BrightWhite(cwd))
+            );
+            string prompt = string.Format("{0}{1}{2} ",
+                Colors.Blue("└─["),
+                Colors.Bold(Colors.BrightYellow("$")),
+                Colors.Blue("]")
+            );
+            Console.Write(prompt);
+            return ReadLine(prompt, cwd);
+        }
+
+        private static string? ReadLine(string prompt, string? cwd = null)
+        {
+            if (Console.IsInputRedirected)
+            {
+                return Console.ReadLine();
+            }
+
+            StringBuilder input = new();
+            Stack<string> undo = new();
+            Stack<string> redo = new();
+
+            while (true)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(intercept: true);
+                bool control = (key.Modifiers & ConsoleModifiers.Control) != 0;
+                bool shift = (key.Modifiers & ConsoleModifiers.Shift) != 0;
+
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine();
+                    return input.ToString();
+                }
+
+                if (control && key.Key == ConsoleKey.Z)
+                {
+                    Stack<string> source = shift ? redo : undo;
+                    Stack<string> destination = shift ? undo : redo;
+
+                    if (source.TryPop(out string? value))
+                    {
+                        destination.Push(input.ToString());
+                        input.Clear().Append(value);
+                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Tab && cwd is not null)
+                {
+                    string previous = input.ToString();
+
+                    if (TryCompletePath(input, cwd))
+                    {
+                        undo.Push(previous);
+                        redo.Clear();
+                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+                {
+                    undo.Push(input.ToString());
+                    redo.Clear();
+                    input.Length--;
+                    Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                    continue;
+                }
+
+                if (!char.IsControl(key.KeyChar))
+                {
+                    undo.Push(input.ToString());
+                    redo.Clear();
+                    input.Append(key.KeyChar);
+                    Console.Write(key.KeyChar);
+                }
+            }
+        }
+
+        private static bool TryCompletePath(StringBuilder input, string cwd)
+        {
+            string text = input.ToString();
+            int tokenStart = text.LastIndexOfAny([' ', '\t']) + 1;
+            string token = text[tokenStart..];
+            string directoryPart = Path.GetDirectoryName(token) ?? "";
+            string prefix = Path.GetFileName(token);
+            string directory = Path.GetFullPath(Path.Combine(cwd, directoryPart));
+            StringComparison comparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            string[] matches = Directory.EnumerateFileSystemEntries(directory)
+                .Where(path => Path.GetFileName(path).StartsWith(prefix, comparison))
+                .ToArray();
+
+            if (matches.Length == 0)
+            {
+                return false;
+            }
+
+            string completion = Path.GetFileName(matches[0]);
+
+            foreach (string match in matches.Skip(1))
+            {
+                string name = Path.GetFileName(match);
+                int length = prefix.Length;
+
+                while (length < completion.Length &&
+                        length < name.Length &&
+                        char.ToUpperInvariant(completion[length]) == char.ToUpperInvariant(name[length]))
+                {
+                    length++;
+                }
+
+                completion = completion[..length];
+            }
+
+            if (matches.Length == 1 && Directory.Exists(matches[0]))
+            {
+                completion += Path.DirectorySeparatorChar;
+            }
+
+            string completedToken = Path.Combine(directoryPart, completion);
+            if (completedToken == token)
+            {
+                return false;
+            }
+
+            input.Length = tokenStart;
+            input.Append(completedToken);
+            return true;
+        }
+    }
+}
