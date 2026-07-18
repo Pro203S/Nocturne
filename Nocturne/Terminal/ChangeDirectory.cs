@@ -54,7 +54,36 @@ namespace Nocturne.Terminal
                 throw new DirectoryNotFoundException("The system cannot find the path specified.");
             }
 
-            return Path.TrimEndingDirectorySeparator(current);
+            return Path.TrimEndingDirectorySeparator(MatchPathCase(current));
+        }
+
+        private static string MatchPathCase(string path)
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return path;
+            }
+
+            string root = Path.GetPathRoot(path)!;
+
+            if (root.Length >= 2 && root[1] == Path.VolumeSeparatorChar)
+            {
+                root = char.ToUpperInvariant(root[0]) + root[1..];
+            }
+
+            string current = root;
+
+            foreach (string part in path[root.Length..].Split(
+                [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                StringSplitOptions.RemoveEmptyEntries))
+            {
+                current = Directory.EnumerateFileSystemEntries(current, part)
+                    .FirstOrDefault(candidate => Path.GetFileName(candidate)
+                        .Equals(part, StringComparison.OrdinalIgnoreCase))
+                    ?? Path.Combine(current, part);
+            }
+
+            return current;
         }
     }
 }
