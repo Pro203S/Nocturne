@@ -168,6 +168,7 @@ namespace Nocturne.Utils
 
             string[] matches = Directory.EnumerateFileSystemEntries(directory)
                 .Where(path => Path.GetFileName(path).StartsWith(prefix, comparison))
+                .OrderBy(Path.GetFileName)
                 .ToArray();
 
             if (matches.Length == 0)
@@ -177,22 +178,7 @@ namespace Nocturne.Utils
 
             string completion = Path.GetFileName(matches[0]);
 
-            foreach (string match in matches.Skip(1))
-            {
-                string name = Path.GetFileName(match);
-                int length = prefix.Length;
-
-                while (length < completion.Length &&
-                        length < name.Length &&
-                        char.ToUpperInvariant(completion[length]) == char.ToUpperInvariant(name[length]))
-                {
-                    length++;
-                }
-
-                completion = completion[..length];
-            }
-
-            if (matches.Length == 1 && Directory.Exists(matches[0]))
+            if (Directory.Exists(matches[0]))
             {
                 completion += Path.DirectorySeparatorChar;
             }
