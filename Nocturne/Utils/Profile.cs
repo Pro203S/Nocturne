@@ -29,7 +29,7 @@ set NOCTURNE_HELP_MSG=true
             }
         }
 
-        public static void Execute(string line)
+        public static void Execute(string line, string? workingDirectory = null)
         {
             line = line.Trim();
 
@@ -63,7 +63,8 @@ set NOCTURNE_HELP_MSG=true
                 FileName = OperatingSystem.IsWindows()
                     ? Environment.GetEnvironmentVariable("COMSPEC") ?? "cmd.exe"
                     : "/bin/sh",
-                UseShellExecute = false
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory
             };
             startInfo.ArgumentList.Add(OperatingSystem.IsWindows() ? "/c" : "-c");
             startInfo.ArgumentList.Add(line);
