@@ -1,3 +1,4 @@
+using Nocturne.Terminal;
 using Nocturne.Utils;
 
 namespace Nocturne
@@ -26,22 +27,9 @@ namespace Nocturne
                     return;
                 }
 
-                if (input.StartsWith("cd "))
+                if (ChangeDirectory.TryExecute(input, Cwd, out string newCwd))
                 {
-                    string path = input[3..];
-                    if (Path.IsPathRooted(path))
-                    {
-                        if (!Directory.Exists(path))
-                        {
-                            throw new Exception("The system cannot find the path specified.");
-                        }
-
-                        Cwd = path;
-                        return;
-                    }
-
-                    string targetPath = Path.GetFullPath(Path.Join(Cwd, path)).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-                    Cwd = targetPath;
+                    Cwd = newCwd;
                     return;
                 }
                 #endregion
