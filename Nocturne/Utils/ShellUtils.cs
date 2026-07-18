@@ -46,6 +46,27 @@ namespace Nocturne.Utils
             string userName = Environment.UserName;
             string computerName = Environment.MachineName;
 
+            string themeName = Environment.GetEnvironmentVariable("NOCTURNE_THEME") ?? "nocturne";
+
+            if (themeName == "bash")
+            {
+                string bashPrompt = string.Format("{0}{1}{2}{3} ",
+                    Colors.Bold(Colors.Green(string.Format("{0}@{1}", userName, computerName))),
+                    Colors.Bold(Colors.BrightWhite(":")),
+                    Colors.Bold(Colors.Blue(cwd)),
+                    Colors.BrightWhite("$")
+                );
+                Console.Write(bashPrompt);
+                return ReadLine(bashPrompt, cwd);
+            }
+
+            if (themeName == "cmd")
+            {
+                string cmdPrompt = string.Format("{0}> ", cwd);
+                Console.Write(cmdPrompt);
+                return ReadLine(cmdPrompt, cwd);
+            }
+
             Console.Write("{0}{1}{2}{3}{4}{5}{6}{4}\n",
                 Colors.Blue("┌─["),
                 Colors.Bold(Colors.BrightGreen(userName)),
@@ -55,13 +76,13 @@ namespace Nocturne.Utils
                 Colors.Blue("──["),
                 Colors.Bold(Colors.BrightWhite(cwd))
             );
-            string prompt = string.Format("{0}{1}{2} ",
+            string nocturnePrompt = string.Format("{0}{1}{2} ",
                 Colors.Blue("└─["),
                 Colors.Bold(Colors.BrightYellow("$")),
                 Colors.Blue("]")
             );
-            Console.Write(prompt);
-            return ReadLine(prompt, cwd);
+            Console.Write(nocturnePrompt);
+            return ReadLine(nocturnePrompt, cwd);
         }
 
         private static string? ReadLine(string prompt, string? cwd = null)

@@ -20,6 +20,10 @@ namespace Nocturne.Utils
 
 # Decides show Nocturne help message.
 set NOCTURNE_HELP_MSG=true
+
+# set Nocturne theme.
+# available values: nocturne, bash, cmd
+set NOCTURNE_THEME=nocturne
 ");
             }
 
