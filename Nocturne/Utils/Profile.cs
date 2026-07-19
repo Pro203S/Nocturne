@@ -18,11 +18,11 @@ namespace Nocturne.Utils
                 File.WriteAllText(FilePath,
     @"# Nocturne Profile
 
-# Decides show Nocturne help message.
+# Controls whether Nocturne displays the help message.
 set NOCTURNE_HELP_MSG=true
 
-# set Nocturne theme.
-# available values: nocturne, bash, cmd
+# Sets the Nocturne theme.
+# Available values: nocturne, bash, cmd
 set NOCTURNE_THEME=nocturne
 ");
             }

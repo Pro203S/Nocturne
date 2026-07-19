@@ -2,16 +2,16 @@ using Nocturne.Utils;
 
 namespace Nocturne.Interaction
 {
-    public struct SelecterItem
+    public struct SelectorItem
     {
         public string Name;
-        public string Value;
+        public object Value;
         public string Description;
     }
 
     public static class Selector
     {
-        public static SelecterItem Select(SelecterItem[] items)
+        public static SelectorItem Select(SelectorItem[] items)
         {
             ArgumentNullException.ThrowIfNull(items);
 
@@ -30,20 +30,29 @@ namespace Nocturne.Interaction
                 Console.WriteLine();
             }
 
+            bool treatControlCAsInput = Console.TreatControlCAsInput;
+
             try
             {
+                Console.TreatControlCAsInput = true;
                 Console.CursorVisible = false;
 
                 int selectedIndex = 0;
                 int startTop = Console.CursorTop;
 
-                Console.CancelKeyPress += CancelKeyPressed;
-
                 while (true)
                 {
                     Render(items, selectedIndex, startTop);
 
-                    switch (Console.ReadKey(intercept: true).Key)
+                    ConsoleKeyInfo key = Console.ReadKey(intercept: true);
+                    if (key.Key == ConsoleKey.Escape ||
+                        key.Key == ConsoleKey.C && key.Modifiers.HasFlag(ConsoleModifiers.Control))
+                    {
+                        Clear(items.Length, startTop);
+                        throw new OperationCanceledException();
+                    }
+
+                    switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
                             selectedIndex = (selectedIndex - 1 + items.Length) % items.Length;
@@ -54,24 +63,19 @@ namespace Nocturne.Interaction
                             break;
 
                         case ConsoleKey.Enter:
-                            Console.WriteLine();
-                            Console.CursorVisible = true;
+                            Clear(items.Length, startTop);
                             return items[selectedIndex];
                     }
                 }
             }
             finally
             {
-                Console.CancelKeyPress -= CancelKeyPressed;
+                Console.TreatControlCAsInput = treatControlCAsInput;
+                Console.CursorVisible = true;
             }
         }
 
-        private static void CancelKeyPressed(object? sender, ConsoleCancelEventArgs ev)
-        {
-            ev.Cancel = true;
-        }
-
-        private static void Render(SelecterItem[] items, int selectedIndex, int startTop)
+        private static void Render(SelectorItem[] items, int selectedIndex, int startTop)
         {
             Console.SetCursorPosition(0, startTop);
 
@@ -86,6 +90,22 @@ namespace Nocturne.Interaction
             Console.Write(Colors.Dim(items[selectedIndex].Description));
             Console.WriteLine("\x1b[K");
             Console.Write("\x1b[K");
+        }
+
+        private static void Clear(int itemCount, int startTop)
+        {
+            Console.SetCursorPosition(0, startTop);
+
+            for (int i = 0; i < itemCount + 2; i++)
+            {
+                Console.Write("\x1b[2K");
+                if (i < itemCount + 1)
+                {
+                    Console.WriteLine();
+                }
+            }
+
+            Console.SetCursorPosition(0, startTop);
         }
     }
 }

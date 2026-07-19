@@ -15,21 +15,21 @@ namespace Nocturne.Commands
 
         protected override void Execute(string[] args, Shell shell)
         {
-            SelecterItem selectedTheme = Selector.Select([
+            SelectorItem selectedTheme = Selector.Select([
                 new() {
                     Name = "bash",
                     Value = "bash",
-                    Description = "Set console theme to bash."
+                    Description = "Set the console theme to Bash."
                 },
                 new() {
                     Name = "cmd",
                     Value = "cmd",
-                    Description = "Set console theme to cmd."
+                    Description = "Set the console theme to cmd."
                 },
                 new() {
                     Name = "nocturne",
                     Value = "nocturne",
-                    Description = "Set console theme to nocturne."
+                    Description = "Set the console theme to Nocturne."
                 }
             ]);
 

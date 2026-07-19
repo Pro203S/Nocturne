@@ -20,7 +20,7 @@ namespace Nocturne
             if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_HELP_MSG")))
             {
                 Console.Write(
-                    "Welcome to {0} 🌙\n\nType {1} to experience special.\n\n",
+                    "Welcome to {0} 🌙\n\nType {1} to get started.\n\n",
                     Colors.Bold(Colors.BrightWhite("Nocturne shell")),
                     Colors.Bold(Colors.BrightYellow("/help"))
                 );

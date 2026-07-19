@@ -14,7 +14,7 @@ namespace Nocturne.Commands
 
         protected override void Execute(string[] args, Shell shell)
         {
-            Console.WriteLine("Available commands in {0} 🌙", Colors.Bold(Colors.BrightWhite("Nocturne shell")));
+            Console.WriteLine("Available commands in the {0} 🌙", Colors.Bold(Colors.BrightWhite("Nocturne shell")));
             Console.WriteLine();
             foreach (var command in Commands)
             {

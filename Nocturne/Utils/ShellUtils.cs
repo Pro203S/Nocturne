@@ -89,7 +89,7 @@ namespace Nocturne.Utils
                 return ReadLine(nocturnePrompt, cwd);
             }
 
-            Console.WriteLine(Colors.BrightYellow("The theme \"" + themeName + "\" doesn't exist.\nPlease change it to bash, cmd or nocturne."));
+            Console.WriteLine(Colors.BrightYellow("The theme \"" + themeName + "\" is not available.\nPlease choose bash, cmd, or nocturne."));
             string errorPrompt = string.Format("{0}> ", cwd);
             Console.Write(errorPrompt);
             return ReadLine(errorPrompt, cwd);

@@ -43,6 +43,10 @@ namespace Nocturne
 
                 SlashCommand.TryExecute(input, this);
             }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
             catch (Exception e)
             {
                 Console.Error.WriteLine(Colors.BrightRed(e.Message));

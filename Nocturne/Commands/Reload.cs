@@ -8,7 +8,7 @@ namespace Nocturne.Commands
         {
             get
             {
-                return "Reload profile.";
+                return "Reloads the profile.";
             }
         }
 
