@@ -1,3 +1,5 @@
+using Nocturne.Utils;
+
 namespace Nocturne.Terminal
 {
     public sealed class SetEnvironment : TerminalCommand
@@ -6,6 +8,7 @@ namespace Nocturne.Terminal
         {
             string[] kv = arguments.Split("=");
             Environment.SetEnvironmentVariable(kv[0], kv[1]);
+            Logger.Log($"[ENV] Set environment variable {kv[0]}.");
         }
     }
 }

@@ -1,3 +1,5 @@
+using Nocturne.Utils;
+
 namespace Nocturne.Terminal
 {
     public abstract class TerminalCommand
@@ -22,6 +24,7 @@ namespace Nocturne.Terminal
                 return false;
             }
 
+            Logger.Log($"[COMMAND] Executing built-in command: {name}");
             string arguments = separator < 0 ? "" : input[(separator + 1)..].TrimStart();
             command.Execute(arguments, shell);
             return true;

@@ -28,12 +28,14 @@ namespace Nocturne.Utils
                 JObject? latestObject = (JObject?)obj.ElementAtOrDefault(0);
                 if (latestObject == null)
                 {
+                    Logger.Log("[UPDATE] No releases were returned.");
                     return;
                 }
 
                 string? tag_name = (string?)latestObject["tag_name"];
                 if (tag_name == null)
                 {
+                    Logger.Log("[UPDATE] The latest release has no tag.");
                     return;
                 }
 
@@ -78,6 +80,8 @@ namespace Nocturne.Utils
                 string stagingPath = Path.Combine(updateRoot, "staging");
                 Directory.CreateDirectory(stagingPath);
 
+                Logger.Log(
+                    $"[UPDATE] Downloading {tag_name} for {runtime}.");
                 spinner.Start($"Downloading {tag_name}...");
                 using (HttpResponseMessage response = await net.GetAsync(
                     downloadUrl,
@@ -96,6 +100,8 @@ namespace Nocturne.Utils
                 }
 
                 ZipFile.ExtractToDirectory(archivePath, stagingPath, true);
+                Logger.Log(
+                    $"[UPDATE] Extracted {tag_name} to {stagingPath}.");
                 spinner.Stop();
 
                 string updaterPath = Path.Combine(updateRoot, "update.ps1");
@@ -146,6 +152,7 @@ namespace Nocturne.Utils
                 updater.ArgumentList.Add(encodedArguments);
                 updater.ArgumentList.Add(updateRoot);
 
+                Logger.Log("[UPDATE] Starting the updater process.");
                 Process.Start(updater);
                 Environment.Exit(0);
             }
@@ -154,6 +161,8 @@ namespace Nocturne.Utils
                 if (spinner.IsRunning)
                     spinner.Stop();
 
+                Logger.Log(
+                    $"[UPDATE] Update check failed: {e.GetType().Name}: {e.Message}");
                 Console.WriteLine(Colors.Red(e.Message));
             }
         }

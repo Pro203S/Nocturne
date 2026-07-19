@@ -27,6 +27,7 @@ namespace Nocturne
                 #region 터미널 내부 명령어
                 if (input == "exit")
                 {
+                    Logger.Log("[SYSTEM] Exit requested.");
                     Environment.Exit(0);
                     return;
                 }
@@ -48,10 +49,12 @@ namespace Nocturne
             }
             catch (OperationCanceledException)
             {
+                Logger.Log("[SHELL] Operation canceled.");
                 return;
             }
             catch (Exception e)
             {
+                Logger.Log($"[ERROR] {e.GetType().Name}: {e.Message}");
                 Console.Error.WriteLine(Colors.BrightRed(e.Message));
                 return;
             }

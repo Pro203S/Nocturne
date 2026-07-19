@@ -26,6 +26,7 @@ namespace Nocturne.Commands
             using WindowsIdentity identity = WindowsIdentity.GetCurrent();
             if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
             {
+                Logger.Log("[SYSTEM] Elevation skipped; already running as administrator.");
                 Console.WriteLine(Colors.BrightYellow(
                     "The shell is already running with administrator privileges."));
                 return;
@@ -46,6 +47,7 @@ namespace Nocturne.Commands
 
             startInfo.ArgumentList.Add(shell.Cwd);
 
+            Logger.Log("[SYSTEM] Requesting an elevated Nocturne process.");
             _ = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start the elevated shell.");
 

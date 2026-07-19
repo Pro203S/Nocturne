@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Nocturne.Discord;
+using Nocturne.Extensions;
 using Nocturne.Utils;
 
 namespace Nocturne
@@ -22,6 +23,8 @@ namespace Nocturne
             };
 
             RunSafely(Profile.Load);
+            Logger.Log($"[SYSTEM] Starting Nocturne {Version} (CWD: {shell.Cwd}).");
+            RunSafely(ExtensionManager.LoadInstalled);
 
             RunSafely(() =>
             {
@@ -31,6 +34,7 @@ namespace Nocturne
             });
 
             await Update.Run();
+            Logger.Log("[SYSTEM] Initialization complete.");
 
             for (; ; )
             {
@@ -74,6 +78,8 @@ namespace Nocturne
         {
             try
             {
+                Logger.Log(
+                    $"[ERROR] {exception.GetType().Name}: {exception.Message}");
                 Console.Error.WriteLine(Colors.BrightRed(exception.Message));
             }
             catch

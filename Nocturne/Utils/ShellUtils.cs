@@ -367,7 +367,9 @@ namespace Nocturne.Utils
                 return null;
             }
 
-            return SlashCommand.Commands.Keys.FirstOrDefault(
+            return SlashCommand.Commands.Keys
+                .Concat(SlashCommand.ExtensionCommands.Keys)
+                .FirstOrDefault(
                 command => command.StartsWith(text, StringComparison.OrdinalIgnoreCase));
         }
 

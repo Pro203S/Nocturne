@@ -14,6 +14,7 @@ namespace Nocturne.Commands
 
         protected override void Execute(string[] args, Shell shell)
         {
+            Logger.Log("[PROFILE] Reload requested.");
             Profile.Load();
         }
     }

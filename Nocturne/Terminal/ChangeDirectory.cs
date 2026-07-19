@@ -1,3 +1,5 @@
+using Nocturne.Utils;
+
 namespace Nocturne.Terminal
 {
     public sealed class ChangeDirectory : TerminalCommand
@@ -17,7 +19,10 @@ namespace Nocturne.Terminal
                 path = path[3..].Trim();
             }
 
+            string previousDirectory = shell.Cwd;
             shell.Cwd = ResolvePath(path, shell.Cwd);
+            Logger.Log(
+                $"[SHELL] Changed directory from {previousDirectory} to {shell.Cwd}.");
         }
 
         private static string ResolvePath(string path, string cwd)

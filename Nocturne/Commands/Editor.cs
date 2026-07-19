@@ -51,8 +51,9 @@ namespace Nocturne.Commands
             Encoding encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             string newLine = Environment.NewLine;
             string contents = "";
+            bool existingFile = File.Exists(filePath);
 
-            if (File.Exists(filePath))
+            if (existingFile)
             {
                 using StreamReader reader = new(
                     filePath,
@@ -68,15 +69,20 @@ namespace Nocturne.Commands
                 .Replace('\r', '\n')
                 .Split('\n');
             string displayPath = Path.GetRelativePath(shell.Cwd, filePath);
+            Logger.Log(
+                $"[EDITOR] Opening {(existingFile ? "existing" : "new")} file {filePath}.");
             string[]? editedLines = OpenEditor(initialLines, displayPath);
 
             if (editedLines is null)
             {
+                Logger.Log($"[EDITOR] Canceled editing {filePath}.");
                 Console.WriteLine(Colors.Dim("Editing canceled."));
                 return;
             }
 
             File.WriteAllText(filePath, string.Join(newLine, editedLines), encoding);
+            Logger.Log(
+                $"[EDITOR] Saved {filePath} ({editedLines.Length} lines).");
             Console.WriteLine(Colors.BrightGreen($"Saved {displayPath}"));
         }
 

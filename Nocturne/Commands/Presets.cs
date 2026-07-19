@@ -59,6 +59,7 @@ namespace Nocturne.Commands
                     }
 
                     Console.WriteLine("Running command: " + Colors.BrightWhite(finalCommand));
+                    Logger.Log($"[PRESET] Running preset {val.Name}.");
                     Profile.Execute(finalCommand, shell.Cwd);
                     return;
                 }
@@ -231,18 +232,26 @@ namespace Nocturne.Commands
 
         private static void AddPreset(Preset p)
         {
-            string arguments = string.Join(",", p.Arguments.Select(argument => $"{argument.Key}|{argument.Value}"));
-            File.WriteAllLines(Path.Combine(PresetsPath, p.Name), [p.Name, arguments, p.FullCommand]);
+            WritePreset(p);
+            Logger.Log($"[PRESET] Added preset {p.Name}.");
         }
 
         private static void EditPreset(Preset p)
         {
-            AddPreset(p);
+            WritePreset(p);
+            Logger.Log($"[PRESET] Updated preset {p.Name}.");
+        }
+
+        private static void WritePreset(Preset p)
+        {
+            string arguments = string.Join(",", p.Arguments.Select(argument => $"{argument.Key}|{argument.Value}"));
+            File.WriteAllLines(Path.Combine(PresetsPath, p.Name), [p.Name, arguments, p.FullCommand]);
         }
 
         private static void DeletePreset(string presetName)
         {
             File.Delete(Path.Combine(PresetsPath, presetName));
+            Logger.Log($"[PRESET] Deleted preset {presetName}.");
         }
     }
 }

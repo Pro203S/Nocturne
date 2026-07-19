@@ -77,6 +77,8 @@ namespace Nocturne.Commands
             }
 
             File.WriteAllLines(Profile.FilePath, lines);
+            Logger.Log(
+                $"[THEME] Changed theme to {selectedTheme.Value}.");
 
             Profile.Load();
         }

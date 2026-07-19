@@ -38,6 +38,8 @@ set NOCTURNE_THEME=nocturne
                 Execute(line);
             }
 
+            Logger.Log($"[PROFILE] Loaded {FilePath}.");
+
             if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_WELCOME_MSG")))
             {
                 Console.Write(
@@ -72,18 +74,27 @@ set NOCTURNE_THEME=nocturne
 
                 if (separator > 0)
                 {
+                    string variableName =
+                        assignment[..separator].Trim().ToString();
                     Environment.SetEnvironmentVariable(
-                        assignment[..separator].Trim().ToString(),
+                        variableName,
                         assignment[(separator + 1)..].ToString());
+                    Logger.Log(
+                        $"[PROFILE] Set environment variable {variableName}.");
                     return;
                 }
             }
+
+            string processDirectory =
+                workingDirectory ?? Environment.CurrentDirectory;
+            Logger.Log(
+                $"[PROCESS] Starting \"{line}\" in {processDirectory}.");
 
             ProcessStartInfo startInfo = new()
             {
                 FileName = Environment.GetEnvironmentVariable("COMSPEC") ?? "cmd.exe",
                 UseShellExecute = false,
-                WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory,
+                WorkingDirectory = processDirectory,
                 Arguments = "/d /s /c " + line
             };
 
@@ -112,6 +123,8 @@ set NOCTURNE_THEME=nocturne
             try
             {
                 process.WaitForExit();
+                Logger.Log(
+                    $"[PROCESS] Command exited with code {process.ExitCode}.");
             }
             finally
             {
