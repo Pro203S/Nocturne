@@ -42,6 +42,8 @@ set NOCTURNE_THEME=nocturne
                 return;
             }
 
+            ShellUtils.SetTitle(line);
+
             if (line.StartsWith("set ", StringComparison.OrdinalIgnoreCase))
             {
                 ReadOnlySpan<char> assignment = line.AsSpan(4).Trim();

@@ -10,6 +10,8 @@ namespace Nocturne
 
         public void Run()
         {
+            ShellUtils.SetTitle(Cwd);
+
             try
             {
                 string input = (ShellUtils.GetInput(Cwd) ?? "").Trim();
@@ -17,9 +19,10 @@ namespace Nocturne
 
                 if (ShellUtils.HasLineContinuation(input))
                 {
-                    Profile.Execute(input[..^1] + ShellUtils.GetMultiLineInput(), Cwd);
-                    return;
+                    input = input[..^1] + ShellUtils.GetMultiLineInput();
                 }
+
+                ShellUtils.SetTitle(input);
 
                 #region 터미널 내부 명령어
                 if (input == "exit")
@@ -51,6 +54,10 @@ namespace Nocturne
             {
                 Console.Error.WriteLine(Colors.BrightRed(e.Message));
                 return;
+            }
+            finally
+            {
+                ShellUtils.SetTitle(Cwd);
             }
         }
 

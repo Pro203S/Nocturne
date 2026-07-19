@@ -7,6 +7,18 @@ namespace Nocturne.Utils
     {
         private static readonly List<string> InputHistory = [];
 
+        public static void SetTitle(string title)
+        {
+            try
+            {
+                Console.Title = title;
+            }
+            catch
+            {
+                // A terminal that does not support titles must not interrupt the shell.
+            }
+        }
+
         public static string GetMultiLineInput()
         {
             StringBuilder command = new();
