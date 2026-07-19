@@ -7,7 +7,8 @@ namespace Nocturne.Commands
             {
                 ["/help"] = new Help(),
                 ["/presets"] = new Presets(),
-                ["/reload"] = new Reload()
+                ["/reload"] = new Reload(),
+                ["/theme"] = new Theme()
             };
 
         public abstract string Description { get; }
