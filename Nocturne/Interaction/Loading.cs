@@ -34,6 +34,8 @@ namespace Nocturne.Interaction
         ];
 
         private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(80);
+        private static readonly object ConsoleSyncRoot = new();
+        private static Loading? activeLoading;
 
         private readonly object syncRoot = new();
         private CancellationTokenSource? cancellation;
@@ -79,13 +81,21 @@ namespace Nocturne.Interaction
                 SetCursorVisible(false);
 
                 CancellationToken token = cancellation.Token;
+                lock (ConsoleSyncRoot)
+                {
+                    activeLoading = this;
+                }
+
                 animationTask = Task.Run(() => AnimateAsync(message, token), token);
             }
         }
 
-        public void Stop(string message)
+        public void Stop(string? message = null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(message);
+            if (message is not null)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(message);
+            }
 
             lock (syncRoot)
             {
@@ -100,12 +110,24 @@ namespace Nocturne.Interaction
 
                 if (outputRedirected)
                 {
-                    Console.WriteLine(message);
+                    if (message is not null)
+                    {
+                        Console.WriteLine(message);
+                    }
                 }
                 else
                 {
-                    ClearLine();
-                    Console.WriteLine(Colors.BrightGreen("✓") + " " + message);
+                    lock (ConsoleSyncRoot)
+                    {
+                        Deactivate();
+                        ClearLine();
+
+                        if (message is not null)
+                        {
+                            Console.WriteLine(Colors.BrightGreen("✓") + " " + message);
+                        }
+                    }
+
                     RestoreCursorVisibility();
                 }
             }
@@ -126,7 +148,12 @@ namespace Nocturne.Interaction
 
                     if (!outputRedirected)
                     {
-                        ClearLine();
+                        lock (ConsoleSyncRoot)
+                        {
+                            Deactivate();
+                            ClearLine();
+                        }
+
                         RestoreCursorVisibility();
                     }
                 }
@@ -135,6 +162,19 @@ namespace Nocturne.Interaction
             }
 
             GC.SuppressFinalize(this);
+        }
+
+        internal static void WriteLine(string message)
+        {
+            lock (ConsoleSyncRoot)
+            {
+                if (activeLoading is not null)
+                {
+                    ClearLine();
+                }
+
+                Console.WriteLine(message);
+            }
         }
 
         private static async Task AnimateAsync(string message, CancellationToken token)
@@ -151,16 +191,19 @@ namespace Nocturne.Interaction
                         ? Colors.Dim($" ({(int)elapsed.Elapsed.TotalSeconds}s)")
                         : string.Empty;
 
-                    ClearLine();
-                    Console.Write(
-                        Colors.Rgb(
-                            color.Red,
-                            color.Green,
-                            color.Blue,
-                            Frames[frameIndex]) +
-                        " " +
-                        message +
-                        duration);
+                    lock (ConsoleSyncRoot)
+                    {
+                        ClearLine();
+                        Console.Write(
+                            Colors.Rgb(
+                                color.Red,
+                                color.Green,
+                                color.Blue,
+                                Frames[frameIndex]) +
+                            " " +
+                            message +
+                            duration);
+                    }
 
                     frameIndex = (frameIndex + 1) % Frames.Length;
                     await Task.Delay(FrameInterval, token);
@@ -172,6 +215,14 @@ namespace Nocturne.Interaction
             catch
             {
                 // Rendering failures must not fault the caller's work.
+            }
+        }
+
+        private void Deactivate()
+        {
+            if (ReferenceEquals(activeLoading, this))
+            {
+                activeLoading = null;
             }
         }
 

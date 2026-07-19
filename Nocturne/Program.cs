@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Nocturne.Interaction;
 using Nocturne.Utils;
 
 namespace Nocturne
@@ -23,10 +22,7 @@ namespace Nocturne
 
             RunSafely(Profile.Load);
 
-            //var loading = new Loading();
-            //loading.Start("Checking update...");
-
-            Logger.Log("Verbose");
+            await Update.Run();
 
             for (; ; )
             {

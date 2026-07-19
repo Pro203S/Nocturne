@@ -1,3 +1,5 @@
+using Nocturne.Interaction;
+
 namespace Nocturne.Utils
 {
     public class Logger
@@ -11,7 +13,7 @@ namespace Nocturne.Utils
             {
                 if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_VERBOSE")))
                 {
-                    Console.WriteLine(" {0} {1}", Colors.Dim("•"), Colors.White(message));
+                    Loading.WriteLine($" {Colors.Dim("•")} {Colors.White(message)}");
                 }
             }
             catch
