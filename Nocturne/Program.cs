@@ -23,7 +23,12 @@ namespace Nocturne
 
             RunSafely(Profile.Load);
 
-            RunSafely(RPC.Initialize);
+            RunSafely(() =>
+            {
+                if (!Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_DISCORD_RPC"))) return;
+
+                RPC.Initialize();
+            });
 
             await Update.Run();
 

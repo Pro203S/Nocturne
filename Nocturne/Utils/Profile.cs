@@ -24,6 +24,9 @@ set NOCTURNE_WELCOME_MSG=true
 # Enables verbose logging.
 set NOCTURNE_VERBOSE=true
 
+# Controls displaying Discord RPC.
+set NOCTURNE_DISCORD_RPC=true
+
 # Sets the Nocturne theme.
 # Available values: nocturne, bash, cmd
 set NOCTURNE_THEME=nocturne
