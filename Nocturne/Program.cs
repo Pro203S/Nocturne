@@ -9,6 +9,7 @@ namespace Nocturne
         {
             RunSafely(Console.Clear);
             RunSafely(() => Console.OutputEncoding = Encoding.UTF8);
+            RunSafely(ConsoleFeatures.EnableAnsiColors);
 
             Shell shell = new()
             {

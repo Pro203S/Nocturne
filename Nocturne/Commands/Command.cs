@@ -6,6 +6,7 @@ namespace Nocturne.Commands
             new(StringComparer.OrdinalIgnoreCase)
             {
                 ["/help"] = new Help(),
+                ["/elevate"] = new Elevate(),
                 ["/presets"] = new Presets(),
                 ["/reload"] = new Reload(),
                 ["/theme"] = new Theme()
