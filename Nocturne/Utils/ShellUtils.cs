@@ -141,12 +141,18 @@ namespace Nocturne.Utils
             int historyIndex = InputHistory.Count;
             int cursorPosition = 0;
             string draft = "";
+            PathCompletionState? pathCompletion = null;
 
             while (true)
             {
                 ConsoleKeyInfo key = Console.ReadKey(intercept: true);
                 bool control = (key.Modifiers & ConsoleModifiers.Control) != 0;
                 bool shift = (key.Modifiers & ConsoleModifiers.Shift) != 0;
+
+                if (key.Key != ConsoleKey.Tab)
+                {
+                    pathCompletion = null;
+                }
 
                 if (control && key.Key == ConsoleKey.C)
                 {
@@ -245,19 +251,51 @@ namespace Nocturne.Utils
                     continue;
                 }
 
-                if (key.Key == ConsoleKey.Tab &&
-                    cwd is not null &&
-                    cursorPosition == input.Length)
+                if (key.Key == ConsoleKey.Tab && cwd is not null)
                 {
                     string previous = input.ToString();
-                    string? slashCommand = FindSlashCommand(input);
-                    bool completed = slashCommand is not null
-                        ? TryCompleteSlashCommand(input, slashCommand)
-                        : TryCompletePath(input, cwd);
+                    int previousCursor = cursorPosition;
+                    bool completed = false;
+
+                    if (pathCompletion is not null)
+                    {
+                        pathCompletion.Move(shift);
+                        pathCompletion.Apply(input);
+                        completed = true;
+                    }
+                    else
+                    {
+                        string? slashCommand = cursorPosition == input.Length
+                            ? FindSlashCommand(input)
+                            : null;
+
+                        if (slashCommand is not null)
+                        {
+                            completed = TryCompleteSlashCommand(input, slashCommand);
+                        }
+                        else
+                        {
+                            pathCompletion = CreatePathCompletion(
+                                input,
+                                cursorPosition,
+                                cwd,
+                                shift);
+
+                            if (pathCompletion is not null)
+                            {
+                                pathCompletion.Apply(input);
+                                completed = true;
+                            }
+                            else
+                            {
+                                Console.Write('\a');
+                            }
+                        }
+                    }
 
                     if (completed)
                     {
-                        undo.Push((previous, cursorPosition));
+                        undo.Push((previous, previousCursor));
                         redo.Clear();
                         cursorPosition = input.Length;
                     }
@@ -344,41 +382,153 @@ namespace Nocturne.Utils
             return true;
         }
 
-        private static bool TryCompletePath(StringBuilder input, string cwd)
+        private static PathCompletionState? CreatePathCompletion(
+            StringBuilder input,
+            int cursorPosition,
+            string cwd,
+            bool reverse)
         {
-            string text = input.ToString();
-            int tokenStart = text.LastIndexOfAny([' ', '\t']) + 1;
-            string token = text[tokenStart..];
+            string text = input.ToString(0, cursorPosition);
+            int tokenStart = FindPathTokenStart(text);
+            string rawToken = text[tokenStart..];
+            bool containsQuotes = rawToken.Contains('"');
+            string token = rawToken.Replace("\"", "");
+            string expandedToken = Environment.ExpandEnvironmentVariables(token);
             string directoryPart = Path.GetDirectoryName(token) ?? "";
-            string prefix = Path.GetFileName(token);
-            string directory = Path.GetFullPath(Path.Combine(cwd, directoryPart));
-            string[] matches = Directory.EnumerateFileSystemEntries(directory)
-                .Where(path => Path.GetFileName(path)
-                    .StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(Path.GetFileName)
-                .ToArray();
+            string searchDirectoryPart = Path.GetDirectoryName(expandedToken) ?? "";
+            string searchPattern = Path.GetFileName(expandedToken);
+
+            if (searchPattern.IndexOfAny(['*', '?']) < 0)
+            {
+                searchPattern += '*';
+            }
+
+            string[] matches;
+            try
+            {
+                string directory = Path.GetFullPath(
+                    Path.Combine(cwd, searchDirectoryPart));
+                bool directoriesOnly = UsesDirectoryCompletion(text[..tokenStart]);
+
+                matches = Directory.EnumerateFileSystemEntries(directory, searchPattern)
+                    .Where(path => !directoriesOnly || Directory.Exists(path))
+                    .Select(path =>
+                    {
+                        string completion = Path.GetFileName(path);
+                        string completedToken = directoryPart.Length == 0
+                            ? completion
+                            : Path.Combine(directoryPart, completion);
+                        bool needsQuotes = containsQuotes ||
+                            RequiresCompletionQuotes(completedToken);
+
+                        return needsQuotes
+                            ? $"\"{completedToken}\""
+                            : completedToken;
+                    })
+                    .ToArray();
+            }
+            catch (Exception exception) when (
+                exception is ArgumentException or
+                DirectoryNotFoundException or
+                IOException or
+                NotSupportedException or
+                UnauthorizedAccessException)
+            {
+                return null;
+            }
 
             if (matches.Length == 0)
             {
-                return false;
+                return null;
             }
 
-            string completion = Path.GetFileName(matches[0]);
+            return new PathCompletionState(
+                text[..tokenStart],
+                matches,
+                reverse ? matches.Length - 1 : 0);
+        }
 
-            if (Directory.Exists(matches[0]))
+        private static int FindPathTokenStart(string text)
+        {
+            int tokenStart = 0;
+            bool insideQuotes = false;
+
+            for (int index = 0; index < text.Length; index++)
             {
-                completion += Path.DirectorySeparatorChar;
+                if (text[index] == '"')
+                {
+                    insideQuotes = !insideQuotes;
+                }
+                else if (!insideQuotes && char.IsWhiteSpace(text[index]))
+                {
+                    tokenStart = index + 1;
+                }
             }
 
-            string completedToken = Path.Combine(directoryPart, completion);
-            if (completedToken == token)
+            return tokenStart;
+        }
+
+        private static bool UsesDirectoryCompletion(string textBeforePath)
+        {
+            int commandStart = 0;
+            bool insideQuotes = false;
+
+            for (int index = 0; index < textBeforePath.Length; index++)
             {
-                return false;
+                if (textBeforePath[index] == '"')
+                {
+                    insideQuotes = !insideQuotes;
+                }
+                else if (!insideQuotes &&
+                    textBeforePath[index] is '&' or '|')
+                {
+                    commandStart = index + 1;
+                }
             }
 
-            input.Length = tokenStart;
-            input.Append(completedToken);
-            return true;
+            string commandLine = textBeforePath[commandStart..]
+                .TrimStart(' ', '\t', '(', '@');
+            int separator = commandLine.IndexOfAny([' ', '\t']);
+            string command = separator < 0
+                ? commandLine
+                : commandLine[..separator];
+
+            return command.Equals("cd", StringComparison.OrdinalIgnoreCase) ||
+                command.Equals("chdir", StringComparison.OrdinalIgnoreCase) ||
+                command.Equals("md", StringComparison.OrdinalIgnoreCase) ||
+                command.Equals("mkdir", StringComparison.OrdinalIgnoreCase) ||
+                command.Equals("rd", StringComparison.OrdinalIgnoreCase) ||
+                command.Equals("rmdir", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool RequiresCompletionQuotes(string path)
+        {
+            const string specialCharacters = "&()[]{}^=;!'+,`~";
+            return path.Any(character =>
+                char.IsWhiteSpace(character) ||
+                specialCharacters.Contains(character));
+        }
+
+        private sealed class PathCompletionState(
+            string prefix,
+            string[] matches,
+            int selectedIndex)
+        {
+            private int selectedIndex = selectedIndex;
+
+            public void Move(bool reverse)
+            {
+                selectedIndex = reverse
+                    ? (selectedIndex - 1 + matches.Length) % matches.Length
+                    : (selectedIndex + 1) % matches.Length;
+            }
+
+            public void Apply(StringBuilder input)
+            {
+                input.Clear()
+                    .Append(prefix)
+                    .Append(matches[selectedIndex]);
+            }
         }
     }
 }
