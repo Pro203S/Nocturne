@@ -352,12 +352,9 @@ namespace Nocturne.Utils
             string directoryPart = Path.GetDirectoryName(token) ?? "";
             string prefix = Path.GetFileName(token);
             string directory = Path.GetFullPath(Path.Combine(cwd, directoryPart));
-            StringComparison comparison = OperatingSystem.IsWindows()
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal;
-
             string[] matches = Directory.EnumerateFileSystemEntries(directory)
-                .Where(path => Path.GetFileName(path).StartsWith(prefix, comparison))
+                .Where(path => Path.GetFileName(path)
+                    .StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(Path.GetFileName)
                 .ToArray();
 

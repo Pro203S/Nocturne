@@ -9,7 +9,8 @@ namespace Nocturne.Commands
                 ["/elevate"] = new Elevate(),
                 ["/presets"] = new Presets(),
                 ["/reload"] = new Reload(),
-                ["/theme"] = new Theme()
+                ["/theme"] = new Theme(),
+                ["/extension"] = new Extension()
             };
 
         public abstract string Description { get; }

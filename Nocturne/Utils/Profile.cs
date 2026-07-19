@@ -21,6 +21,9 @@ namespace Nocturne.Utils
 # Controls whether Nocturne displays the welcome message.
 set NOCTURNE_WELCOME_MSG=true
 
+# Enables verbose logging.
+set NOCTURNE_VERBOSE=true
+
 # Sets the Nocturne theme.
 # Available values: nocturne, bash, cmd
 set NOCTURNE_THEME=nocturne
@@ -75,22 +78,11 @@ set NOCTURNE_THEME=nocturne
 
             ProcessStartInfo startInfo = new()
             {
-                FileName = OperatingSystem.IsWindows()
-                    ? Environment.GetEnvironmentVariable("COMSPEC") ?? "cmd.exe"
-                    : "/bin/sh",
+                FileName = Environment.GetEnvironmentVariable("COMSPEC") ?? "cmd.exe",
                 UseShellExecute = false,
-                WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory
+                WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory,
+                Arguments = "/d /s /c " + line
             };
-
-            if (OperatingSystem.IsWindows())
-            {
-                startInfo.Arguments = "/d /s /c " + line;
-            }
-            else
-            {
-                startInfo.ArgumentList.Add("-c");
-                startInfo.ArgumentList.Add(line);
-            }
 
             using Process process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start the profile command.");

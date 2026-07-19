@@ -1,11 +1,13 @@
 ﻿using System.Text;
+using Nocturne.Interaction;
 using Nocturne.Utils;
 
 namespace Nocturne
 {
     public class Program
     {
-        static void Main(string[] args)
+        public static readonly string Version = "v0.0.0";
+        async static Task Main(string[] args)
         {
             RunSafely(Console.Clear);
             RunSafely(() => Console.OutputEncoding = Encoding.UTF8);
@@ -20,6 +22,11 @@ namespace Nocturne
             };
 
             RunSafely(Profile.Load);
+
+            var loading = new Loading();
+            loading.Start("Checking update...");
+
+            Logger.Log("Verbose");
 
             for (; ; )
             {

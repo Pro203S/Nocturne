@@ -23,43 +23,21 @@ namespace Nocturne.Commands
                 "dotnet",
                 StringComparison.OrdinalIgnoreCase);
 
-            ProcessStartInfo startInfo;
-
-            if (OperatingSystem.IsWindows())
+            using WindowsIdentity identity = WindowsIdentity.GetCurrent();
+            if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
             {
-                using WindowsIdentity identity = WindowsIdentity.GetCurrent();
-                if (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
-                {
-                    Console.WriteLine(Colors.BrightYellow(
-                        "The shell is already running with administrator privileges."));
-                    return;
-                }
-
-                startInfo = new ProcessStartInfo
-                {
-                    FileName = processPath,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WorkingDirectory = shell.Cwd
-                };
+                Console.WriteLine(Colors.BrightYellow(
+                    "The shell is already running with administrator privileges."));
+                return;
             }
-            else
+
+            ProcessStartInfo startInfo = new()
             {
-                if (Environment.UserName == "root")
-                {
-                    Console.WriteLine(Colors.BrightYellow(
-                        "The shell is already running with elevated privileges."));
-                    return;
-                }
-
-                startInfo = new ProcessStartInfo
-                {
-                    FileName = "sudo",
-                    UseShellExecute = false,
-                    WorkingDirectory = shell.Cwd
-                };
-                startInfo.ArgumentList.Add(processPath);
-            }
+                FileName = processPath,
+                UseShellExecute = true,
+                Verb = "runas",
+                WorkingDirectory = shell.Cwd
+            };
 
             if (hostedByDotnet)
             {

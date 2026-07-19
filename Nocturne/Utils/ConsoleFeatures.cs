@@ -10,11 +10,6 @@ namespace Nocturne.Utils
 
         public static void EnableAnsiColors()
         {
-            if (!OperatingSystem.IsWindows())
-            {
-                return;
-            }
-
             EnableAnsiColors(GetStdHandle(StdOutputHandle));
             EnableAnsiColors(GetStdHandle(StdErrorHandle));
         }

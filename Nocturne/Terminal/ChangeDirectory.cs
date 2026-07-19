@@ -59,11 +59,6 @@ namespace Nocturne.Terminal
 
         private static string MatchPathCase(string path)
         {
-            if (!OperatingSystem.IsWindows())
-            {
-                return path;
-            }
-
             string root = Path.GetPathRoot(path)!;
 
             if (root.Length >= 2 && root[1] == Path.VolumeSeparatorChar)
