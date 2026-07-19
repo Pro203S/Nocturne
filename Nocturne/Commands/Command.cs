@@ -5,7 +5,9 @@ namespace Nocturne.Commands
         public static readonly Dictionary<string, SlashCommand> Commands =
             new(StringComparer.OrdinalIgnoreCase)
             {
-                ["/help"] = new Help()
+                ["/help"] = new Help(),
+                ["/presets"] = new Presets(),
+                ["/reload"] = new Reload()
             };
 
         public abstract string Description { get; }

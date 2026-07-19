@@ -8,14 +8,13 @@ namespace Nocturne.Commands
         {
             get
             {
-                return "Shows help message.";
+                return "Shows the help message.";
             }
         }
 
         protected override void Execute(string[] args, Shell shell)
         {
-            Console.WriteLine("Welcome to {0} 🌙", Colors.Bold(Colors.BrightWhite("Nocturne shell")));
-            Console.WriteLine("{0} supports slash commands.\n", Colors.Bold(Colors.BrightWhite("Nocturne shell")));
+            Console.WriteLine("Available commands in {0} 🌙", Colors.Bold(Colors.BrightWhite("Nocturne shell")));
             Console.WriteLine();
             foreach (var command in Commands)
             {
