@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Nocturne.Discord;
 using Nocturne.Utils;
 
 namespace Nocturne
@@ -21,6 +22,8 @@ namespace Nocturne
             };
 
             RunSafely(Profile.Load);
+
+            RunSafely(RPC.Initialize);
 
             await Update.Run();
 
