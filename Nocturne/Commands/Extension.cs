@@ -4,6 +4,8 @@ namespace Nocturne.Commands
 {
     public class Extension : SlashCommand
     {
+        public static readonly string ExtensionsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "nocturne_extensions");
+
         public override string Description
         {
             get
@@ -35,7 +37,23 @@ namespace Nocturne.Commands
                 }
             ]).Value;
 
+            if (work == "install")
+            {
 
+                return;
+            }
+
+            if (work == "list")
+            {
+
+                return;
+            }
+
+            if (work == "remove")
+            {
+
+                return;
+            }
         }
     }
 }
