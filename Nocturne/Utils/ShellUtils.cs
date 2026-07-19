@@ -1,3 +1,4 @@
+using Nocturne.Commands;
 using System.Text;
 
 namespace Nocturne.Utils
@@ -136,7 +137,6 @@ namespace Nocturne.Utils
 
                 if (control && key.Key == ConsoleKey.C)
                 {
-                    Console.WriteLine();
                     Console.Write("\r\x1b[2K");
                     Console.WriteLine();
                     throw new OperationCanceledException();
@@ -153,6 +153,7 @@ namespace Nocturne.Utils
                         InputHistory.Add(value);
                     }
 
+                    RenderInput(prompt, input, false);
                     Console.WriteLine();
                     return value;
                 }
@@ -176,7 +177,7 @@ namespace Nocturne.Utils
                         historyIndex = newIndex;
                         input.Clear().Append(
                             historyIndex == InputHistory.Count ? draft : InputHistory[historyIndex]);
-                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                        RenderInput(prompt, input, true);
                     }
                     continue;
                 }
@@ -190,7 +191,7 @@ namespace Nocturne.Utils
                     {
                         destination.Push(input.ToString());
                         input.Clear().Append(value);
-                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                        RenderInput(prompt, input, cwd is not null);
                     }
                     continue;
                 }
@@ -198,13 +199,18 @@ namespace Nocturne.Utils
                 if (key.Key == ConsoleKey.Tab && cwd is not null)
                 {
                     string previous = input.ToString();
+                    string? slashCommand = FindSlashCommand(input);
+                    bool completed = slashCommand is not null
+                        ? TryCompleteSlashCommand(input, slashCommand)
+                        : TryCompletePath(input, cwd);
 
-                    if (TryCompletePath(input, cwd))
+                    if (completed)
                     {
                         undo.Push(previous);
                         redo.Clear();
-                        Console.Write("\r{0}{1}\x1b[K", prompt, input);
                     }
+
+                    RenderInput(prompt, input, true);
                     continue;
                 }
 
@@ -213,7 +219,7 @@ namespace Nocturne.Utils
                     undo.Push(input.ToString());
                     redo.Clear();
                     input.Length--;
-                    Console.Write("\r{0}{1}\x1b[K", prompt, input);
+                    RenderInput(prompt, input, cwd is not null);
                     continue;
                 }
 
@@ -222,9 +228,52 @@ namespace Nocturne.Utils
                     undo.Push(input.ToString());
                     redo.Clear();
                     input.Append(key.KeyChar);
-                    Console.Write(key.KeyChar);
+                    RenderInput(prompt, input, cwd is not null);
                 }
             }
+        }
+
+        private static void RenderInput(string prompt, StringBuilder input, bool showSuggestion)
+        {
+            Console.Write("\r{0}{1}\x1b[K", prompt, input);
+
+            if (!showSuggestion)
+            {
+                return;
+            }
+
+            string? slashCommand = FindSlashCommand(input);
+            if (slashCommand is null || slashCommand.Length == input.Length)
+            {
+                return;
+            }
+
+            string suggestion = slashCommand[input.Length..];
+            Console.Write(Colors.Gray(suggestion));
+            Console.Write($"\x1b[{suggestion.Length}D");
+        }
+
+        private static string? FindSlashCommand(StringBuilder input)
+        {
+            string text = input.ToString();
+            if (text.Length == 0 || text[0] != '/' || text.Any(char.IsWhiteSpace))
+            {
+                return null;
+            }
+
+            return SlashCommand.Commands.Keys.FirstOrDefault(
+                command => command.StartsWith(text, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool TryCompleteSlashCommand(StringBuilder input, string slashCommand)
+        {
+            if (slashCommand.Length == input.Length)
+            {
+                return false;
+            }
+
+            input.Clear().Append(slashCommand);
+            return true;
         }
 
         private static bool TryCompletePath(StringBuilder input, string cwd)
