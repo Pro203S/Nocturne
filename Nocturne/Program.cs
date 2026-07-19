@@ -23,8 +23,8 @@ namespace Nocturne
 
             RunSafely(Profile.Load);
 
-            var loading = new Loading();
-            loading.Start("Checking update...");
+            //var loading = new Loading();
+            //loading.Start("Checking update...");
 
             Logger.Log("Verbose");
 

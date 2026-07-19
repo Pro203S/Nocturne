@@ -2,3 +2,5 @@ Nocturne/bin/
 Nocturne/obj
 .tmp/
 
+artifacts/
+publish/
