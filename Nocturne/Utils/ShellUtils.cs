@@ -95,6 +95,11 @@ namespace Nocturne.Utils
             return ReadLine(errorPrompt, cwd);
         }
 
+        public static string? ReadLine()
+        {
+            return ReadLine(string.Empty);
+        }
+
         private static string? ReadLine(string prompt, string? cwd = null)
         {
             if (Console.IsInputRedirected)
@@ -102,6 +107,21 @@ namespace Nocturne.Utils
                 return Console.ReadLine();
             }
 
+            bool treatControlCAsInput = Console.TreatControlCAsInput;
+
+            try
+            {
+                Console.TreatControlCAsInput = true;
+                return ReadInteractiveLine(prompt, cwd);
+            }
+            finally
+            {
+                Console.TreatControlCAsInput = treatControlCAsInput;
+            }
+        }
+
+        private static string ReadInteractiveLine(string prompt, string? cwd)
+        {
             StringBuilder input = new();
             Stack<string> undo = new();
             Stack<string> redo = new();
@@ -113,6 +133,14 @@ namespace Nocturne.Utils
                 ConsoleKeyInfo key = Console.ReadKey(intercept: true);
                 bool control = (key.Modifiers & ConsoleModifiers.Control) != 0;
                 bool shift = (key.Modifiers & ConsoleModifiers.Shift) != 0;
+
+                if (control && key.Key == ConsoleKey.C)
+                {
+                    Console.WriteLine();
+                    Console.Write("\r\x1b[2K");
+                    Console.WriteLine();
+                    throw new OperationCanceledException();
+                }
 
                 if (key.Key == ConsoleKey.Enter)
                 {

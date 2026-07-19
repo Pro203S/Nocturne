@@ -7,28 +7,78 @@ namespace Nocturne
     {
         static void Main(string[] args)
         {
-            Console.Clear();
-            Console.OutputEncoding = Encoding.UTF8;
+            RunSafely(Console.Clear);
+            RunSafely(() => Console.OutputEncoding = Encoding.UTF8);
 
             Shell shell = new()
             {
-                Cwd = args.ElementAtOrDefault(0) ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                Cwd = RunSafely(
+                    () => args.ElementAtOrDefault(0) ??
+                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".")
             };
 
-            Profile.Load();
+            RunSafely(Profile.Load);
 
-            if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_HELP_MSG")))
+            RunSafely(() =>
             {
-                Console.Write(
-                    "Welcome to {0} 🌙\n\nType {1} to get started.\n\n",
-                    Colors.Bold(Colors.BrightWhite("Nocturne shell")),
-                    Colors.Bold(Colors.BrightYellow("/help"))
-                );
-            }
+                if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_WELCOME_MSG")))
+                {
+                    Console.Write(
+                        "Welcome {0}! 🌙\n\nType {1} to experience something special.\n\n",
+                        Colors.Bold(Colors.BrightWhite(Environment.UserName)),
+                        Colors.Bold(Colors.BrightYellow("/help"))
+                    );
+                }
+            });
 
             for (; ; )
             {
-                shell.Run();
+                RunSafely(shell.Run);
+            }
+        }
+
+        private static void RunSafely(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception exception)
+            {
+                ReportException(exception);
+            }
+        }
+
+        private static T RunSafely<T>(Func<T> action, T fallback)
+        {
+            try
+            {
+                return action();
+            }
+            catch (OperationCanceledException)
+            {
+                return fallback;
+            }
+            catch (Exception exception)
+            {
+                ReportException(exception);
+                return fallback;
+            }
+        }
+
+        private static void ReportException(Exception exception)
+        {
+            try
+            {
+                Console.Error.WriteLine(Colors.BrightRed(exception.Message));
+            }
+            catch
+            {
+                // An error while reporting an exception must not terminate the shell.
             }
         }
     }

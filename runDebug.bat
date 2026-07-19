@@ -1,0 +1,1 @@
+.\Nocturne\bin\Debug\net10.0\Nocturne.exe

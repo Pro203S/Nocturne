@@ -18,8 +18,8 @@ namespace Nocturne.Utils
                 File.WriteAllText(FilePath,
     @"# Nocturne Profile
 
-# Controls whether Nocturne displays the help message.
-set NOCTURNE_HELP_MSG=true
+# Controls whether Nocturne displays the welcome message.
+set NOCTURNE_WELCOME_MSG=true
 
 # Sets the Nocturne theme.
 # Available values: nocturne, bash, cmd

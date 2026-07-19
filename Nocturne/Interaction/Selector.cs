@@ -38,17 +38,23 @@ namespace Nocturne.Interaction
                 Console.CursorVisible = false;
 
                 int selectedIndex = 0;
-                int startTop = Console.CursorTop;
+                bool rendered = false;
 
                 while (true)
                 {
-                    Render(items, selectedIndex, startTop);
+                    if (rendered)
+                    {
+                        MoveToStart(items.Length);
+                    }
+
+                    Render(items, selectedIndex);
+                    rendered = true;
 
                     ConsoleKeyInfo key = Console.ReadKey(intercept: true);
                     if (key.Key == ConsoleKey.Escape ||
                         key.Key == ConsoleKey.C && key.Modifiers.HasFlag(ConsoleModifiers.Control))
                     {
-                        Clear(items.Length, startTop);
+                        Clear(items.Length);
                         throw new OperationCanceledException();
                     }
 
@@ -63,7 +69,7 @@ namespace Nocturne.Interaction
                             break;
 
                         case ConsoleKey.Enter:
-                            Clear(items.Length, startTop);
+                            Clear(items.Length);
                             return items[selectedIndex];
                     }
                 }
@@ -75,10 +81,8 @@ namespace Nocturne.Interaction
             }
         }
 
-        private static void Render(SelectorItem[] items, int selectedIndex, int startTop)
+        private static void Render(SelectorItem[] items, int selectedIndex)
         {
-            Console.SetCursorPosition(0, startTop);
-
             for (int i = 0; i < items.Length; i++)
             {
                 Console.Write(Colors.BrightWhite(i == selectedIndex ? "> " : "  "));
@@ -92,20 +96,15 @@ namespace Nocturne.Interaction
             Console.Write("\x1b[K");
         }
 
-        private static void Clear(int itemCount, int startTop)
+        private static void Clear(int itemCount)
         {
-            Console.SetCursorPosition(0, startTop);
+            MoveToStart(itemCount);
+            Console.Write("\x1b[J");
+        }
 
-            for (int i = 0; i < itemCount + 2; i++)
-            {
-                Console.Write("\x1b[2K");
-                if (i < itemCount + 1)
-                {
-                    Console.WriteLine();
-                }
-            }
-
-            Console.SetCursorPosition(0, startTop);
+        private static void MoveToStart(int itemCount)
+        {
+            Console.Write($"\x1b[{itemCount + 2}A\r");
         }
     }
 }

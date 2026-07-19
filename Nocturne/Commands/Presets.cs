@@ -54,11 +54,12 @@ namespace Nocturne.Commands
                         string value = val.Arguments[key];
 
                         Console.WriteLine("Enter a value for the argument " + Colors.BrightWhite(key) + ".");
-                        finalCommand = finalCommand.Replace("${" + key + "}", Console.ReadLine());
+                        finalCommand = finalCommand.Replace("${" + key + "}", ShellUtils.ReadLine());
                         Console.WriteLine();
                     }
 
-                    Profile.Execute(finalCommand, Environment.CurrentDirectory);
+                    Console.WriteLine("Running command: " + Colors.BrightWhite(finalCommand));
+                    Profile.Execute(finalCommand, shell.Cwd);
                     return;
                 }
 
@@ -86,7 +87,7 @@ namespace Nocturne.Commands
                 if (work == "add")
                 {
                     Console.WriteLine("Enter a name for the preset.");
-                    string? name = Console.ReadLine();
+                    string? name = ShellUtils.ReadLine();
                     if (string.IsNullOrEmpty(name))
                     {
                         Console.WriteLine(Colors.Red("The preset name cannot be empty."));
@@ -96,7 +97,7 @@ namespace Nocturne.Commands
 
                     Console.WriteLine("Enter the preset's full command. (Line breaks are not supported.)");
                     Console.WriteLine($"You can reference arguments using {Colors.BrightWhite("${name}")}.");
-                    string? fullCommand = Console.ReadLine();
+                    string? fullCommand = ShellUtils.ReadLine();
                     if (string.IsNullOrEmpty(fullCommand))
                     {
                         Console.WriteLine(Colors.Red("The full command cannot be empty."));
@@ -132,7 +133,7 @@ namespace Nocturne.Commands
 
                     Console.WriteLine("Enter a new full command for the preset. (Line breaks are not supported.)");
                     Console.WriteLine($"You can reference arguments using {Colors.BrightWhite("${name}")}.");
-                    string? fullCommand = Console.ReadLine();
+                    string? fullCommand = ShellUtils.ReadLine();
                     if (string.IsNullOrEmpty(fullCommand))
                     {
                         Console.WriteLine(Colors.Red("The full command cannot be empty."));
