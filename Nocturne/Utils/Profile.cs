@@ -72,8 +72,16 @@ set NOCTURNE_THEME=nocturne
                 UseShellExecute = false,
                 WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory
             };
-            startInfo.ArgumentList.Add(OperatingSystem.IsWindows() ? "/c" : "-c");
-            startInfo.ArgumentList.Add(line);
+
+            if (OperatingSystem.IsWindows())
+            {
+                startInfo.Arguments = "/d /s /c " + line;
+            }
+            else
+            {
+                startInfo.ArgumentList.Add("-c");
+                startInfo.ArgumentList.Add(line);
+            }
 
             using Process process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start the profile command.");

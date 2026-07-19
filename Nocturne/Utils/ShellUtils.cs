@@ -136,9 +136,10 @@ namespace Nocturne.Utils
         private static string ReadInteractiveLine(string prompt, string? cwd)
         {
             StringBuilder input = new();
-            Stack<string> undo = new();
-            Stack<string> redo = new();
+            Stack<(string Text, int Cursor)> undo = new();
+            Stack<(string Text, int Cursor)> redo = new();
             int historyIndex = InputHistory.Count;
+            int cursorPosition = 0;
             string draft = "";
 
             while (true)
@@ -165,7 +166,7 @@ namespace Nocturne.Utils
                         InputHistory.Add(value);
                     }
 
-                    RenderInput(prompt, input, false);
+                    RenderInput(prompt, input, input.Length, false);
                     Console.WriteLine();
                     return value;
                 }
@@ -184,31 +185,69 @@ namespace Nocturne.Utils
                             draft = input.ToString();
                         }
 
-                        undo.Push(input.ToString());
+                        undo.Push((input.ToString(), cursorPosition));
                         redo.Clear();
                         historyIndex = newIndex;
                         input.Clear().Append(
                             historyIndex == InputHistory.Count ? draft : InputHistory[historyIndex]);
-                        RenderInput(prompt, input, true);
+                        cursorPosition = input.Length;
+                        RenderInput(prompt, input, cursorPosition, true);
                     }
                     continue;
                 }
 
                 if (control && key.Key == ConsoleKey.Z)
                 {
-                    Stack<string> source = shift ? redo : undo;
-                    Stack<string> destination = shift ? undo : redo;
+                    Stack<(string Text, int Cursor)> source = shift ? redo : undo;
+                    Stack<(string Text, int Cursor)> destination = shift ? undo : redo;
 
-                    if (source.TryPop(out string? value))
+                    if (source.TryPop(out var state))
                     {
-                        destination.Push(input.ToString());
-                        input.Clear().Append(value);
-                        RenderInput(prompt, input, cwd is not null);
+                        destination.Push((input.ToString(), cursorPosition));
+                        input.Clear().Append(state.Text);
+                        cursorPosition = state.Cursor;
+                        RenderInput(prompt, input, cursorPosition, cwd is not null);
                     }
                     continue;
                 }
 
-                if (key.Key == ConsoleKey.Tab && cwd is not null)
+                if (key.Key == ConsoleKey.LeftArrow)
+                {
+                    if (cursorPosition > 0)
+                    {
+                        cursorPosition--;
+                        RenderInput(prompt, input, cursorPosition, cwd is not null);
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.RightArrow)
+                {
+                    if (cursorPosition < input.Length)
+                    {
+                        cursorPosition++;
+                        RenderInput(prompt, input, cursorPosition, cwd is not null);
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Home)
+                {
+                    cursorPosition = 0;
+                    RenderInput(prompt, input, cursorPosition, cwd is not null);
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.End)
+                {
+                    cursorPosition = input.Length;
+                    RenderInput(prompt, input, cursorPosition, cwd is not null);
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Tab &&
+                    cwd is not null &&
+                    cursorPosition == input.Length)
                 {
                     string previous = input.ToString();
                     string? slashCommand = FindSlashCommand(input);
@@ -218,51 +257,68 @@ namespace Nocturne.Utils
 
                     if (completed)
                     {
-                        undo.Push(previous);
+                        undo.Push((previous, cursorPosition));
                         redo.Clear();
+                        cursorPosition = input.Length;
                     }
 
-                    RenderInput(prompt, input, true);
+                    RenderInput(prompt, input, cursorPosition, true);
                     continue;
                 }
 
-                if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+                if (key.Key == ConsoleKey.Backspace && cursorPosition > 0)
                 {
-                    undo.Push(input.ToString());
+                    undo.Push((input.ToString(), cursorPosition));
                     redo.Clear();
-                    input.Length--;
-                    RenderInput(prompt, input, cwd is not null);
+                    input.Remove(cursorPosition - 1, 1);
+                    cursorPosition--;
+                    RenderInput(prompt, input, cursorPosition, cwd is not null);
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Delete && cursorPosition < input.Length)
+                {
+                    undo.Push((input.ToString(), cursorPosition));
+                    redo.Clear();
+                    input.Remove(cursorPosition, 1);
+                    RenderInput(prompt, input, cursorPosition, cwd is not null);
                     continue;
                 }
 
                 if (!char.IsControl(key.KeyChar))
                 {
-                    undo.Push(input.ToString());
+                    undo.Push((input.ToString(), cursorPosition));
                     redo.Clear();
-                    input.Append(key.KeyChar);
-                    RenderInput(prompt, input, cwd is not null);
+                    input.Insert(cursorPosition, key.KeyChar);
+                    cursorPosition++;
+                    RenderInput(prompt, input, cursorPosition, cwd is not null);
                 }
             }
         }
 
-        private static void RenderInput(string prompt, StringBuilder input, bool showSuggestion)
+        private static void RenderInput(
+            string prompt,
+            StringBuilder input,
+            int cursorPosition,
+            bool showSuggestion)
         {
-            Console.Write("\r{0}{1}\x1b[K", prompt, input);
+            Console.Write("\r{0}", prompt);
+            Console.Write(input.ToString(0, cursorPosition));
+            Console.Write("\x1b[s");
+            Console.Write(input.ToString(cursorPosition, input.Length - cursorPosition));
+            Console.Write("\x1b[K");
 
-            if (!showSuggestion)
+            if (showSuggestion && cursorPosition == input.Length)
             {
-                return;
+                string? slashCommand = FindSlashCommand(input);
+                if (slashCommand is not null && slashCommand.Length != input.Length)
+                {
+                    string suggestion = slashCommand[input.Length..];
+                    Console.Write(Colors.Gray(suggestion));
+                }
             }
 
-            string? slashCommand = FindSlashCommand(input);
-            if (slashCommand is null || slashCommand.Length == input.Length)
-            {
-                return;
-            }
-
-            string suggestion = slashCommand[input.Length..];
-            Console.Write(Colors.Gray(suggestion));
-            Console.Write($"\x1b[{suggestion.Length}D");
+            Console.Write("\x1b[u");
         }
 
         private static string? FindSlashCommand(StringBuilder input)
