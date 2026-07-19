@@ -69,22 +69,30 @@ namespace Nocturne.Utils
                 return ReadLine(cmdPrompt, cwd);
             }
 
-            Console.Write("{0}{1}{2}{3}{4}{5}{6}{4}\n",
-                Colors.Blue("┌─["),
-                Colors.Bold(Colors.BrightGreen(userName)),
-                Colors.BrightBlue("@"),
-                Colors.Bold(Colors.BrightBlue(computerName)),
-                Colors.Blue("]"),
-                Colors.Blue("──["),
-                Colors.Bold(Colors.BrightWhite(cwd))
-            );
-            string nocturnePrompt = string.Format("{0}{1}{2} ",
-                Colors.Blue("└─["),
-                Colors.Bold(Colors.BrightYellow("$")),
-                Colors.Blue("]")
-            );
-            Console.Write(nocturnePrompt);
-            return ReadLine(nocturnePrompt, cwd);
+            if (themeName == "nocturne")
+            {
+                Console.Write("{0}{1}{2}{3}{4}{5}{6}{4}\n",
+                    Colors.Blue("┌─["),
+                    Colors.Bold(Colors.BrightGreen(userName)),
+                    Colors.BrightBlue("@"),
+                    Colors.Bold(Colors.BrightBlue(computerName)),
+                    Colors.Blue("]"),
+                    Colors.Blue("──["),
+                    Colors.Bold(Colors.BrightWhite(cwd))
+                );
+                string nocturnePrompt = string.Format("{0}{1}{2} ",
+                    Colors.Blue("└─["),
+                    Colors.Bold(Colors.BrightYellow("$")),
+                    Colors.Blue("]")
+                );
+                Console.Write(nocturnePrompt);
+                return ReadLine(nocturnePrompt, cwd);
+            }
+
+            Console.WriteLine(Colors.BrightYellow("The theme \"" + themeName + "\" doesn't exist.\nPlease change it to bash, cmd or nocturne."));
+            string errorPrompt = string.Format("{0}> ", cwd);
+            Console.Write(errorPrompt);
+            return ReadLine(errorPrompt, cwd);
         }
 
         private static string? ReadLine(string prompt, string? cwd = null)
