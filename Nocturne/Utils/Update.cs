@@ -19,7 +19,7 @@ namespace Nocturne.Utils
                 using HttpClient net = new();
                 net.DefaultRequestHeaders.UserAgent.ParseAdd($"Nocturne/{Program.Version}");
 
-                Logger.Log("Requesting to https://api.github.com/repos/Pro203S/Nocturne/releases...");
+                Logger.Log("[UPDATE] Requesting to https://api.github.com/repos/Pro203S/Nocturne/releases...");
                 string rawData = await net.GetStringAsync("https://api.github.com/repos/Pro203S/Nocturne/releases");
                 spinner.Stop();
                 
@@ -37,11 +37,11 @@ namespace Nocturne.Utils
                     return;
                 }
 
-                Logger.Log("Latest tag name: " + tag_name);
+                Logger.Log("[UPDATE] Latest tag name: " + tag_name);
 
                 if (Program.Version == tag_name)
                 {
-                    Logger.Log("Update not needed. Skipping!");
+                    Logger.Log("[UPDATE] Update not needed. Skipping!");
                     return;
                 }
 
