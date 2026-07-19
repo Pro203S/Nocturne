@@ -31,6 +31,15 @@ set NOCTURNE_THEME=nocturne
             {
                 Execute(line);
             }
+
+            if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_WELCOME_MSG")))
+            {
+                Console.Write(
+                    "Welcome {0}! 🌙\n\nType {1} to experience something special.\n\n",
+                    Colors.Bold(Colors.BrightWhite(Environment.UserName)),
+                    Colors.Bold(Colors.BrightYellow("/help"))
+                );
+            }
         }
 
         public static void Execute(string line, string? workingDirectory = null)

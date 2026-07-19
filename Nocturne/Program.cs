@@ -20,18 +20,6 @@ namespace Nocturne
 
             RunSafely(Profile.Load);
 
-            RunSafely(() =>
-            {
-                if (Convert.ToBoolean(Environment.GetEnvironmentVariable("NOCTURNE_WELCOME_MSG")))
-                {
-                    Console.Write(
-                        "Welcome {0}! 🌙\n\nType {1} to experience something special.\n\n",
-                        Colors.Bold(Colors.BrightWhite(Environment.UserName)),
-                        Colors.Bold(Colors.BrightYellow("/help"))
-                    );
-                }
-            });
-
             for (; ; )
             {
                 RunSafely(shell.Run);
