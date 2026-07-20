@@ -25,8 +25,8 @@ namespace Nocturne.Discord
 
             rpc.SetPresence(new RichPresence()
             {
-                Details = "Writing commands",
-                State = "Commanding the shell",
+                Details = "Working on " + Environment.MachineName,
+                State = "Writing commands",
                 Timestamps = Timestamps.Now
             });
 
