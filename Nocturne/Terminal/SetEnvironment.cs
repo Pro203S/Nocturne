@@ -8,7 +8,7 @@ namespace Nocturne.Terminal
         {
             string[] kv = arguments.Split("=");
             Environment.SetEnvironmentVariable(kv[0], kv[1]);
-            Logger.Log($"[ENV] Set environment variable {kv[0]}.");
+            Logger.Log($"[ENV] Set environment variable {kv[0]} to ${kv[1]}.");
         }
     }
 }

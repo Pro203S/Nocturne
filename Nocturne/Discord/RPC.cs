@@ -7,7 +7,7 @@ namespace Nocturne.Discord
     {
         public static readonly string CLIENT_ID = "1528387551449059480";
 
-        private static DiscordRpcClient rpc = new(CLIENT_ID);
+        private static readonly DiscordRpcClient rpc = new(CLIENT_ID);
 
         public static void Initialize()
         {
