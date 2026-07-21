@@ -8,6 +8,7 @@ namespace Nocturne.Commands
             new(StringComparer.OrdinalIgnoreCase)
             {
                 ["/help"] = new Help(),
+                ["/version"] = new Version(),
                 ["/editor"] = new Editor(),
                 ["/elevate"] = new Elevate(),
                 ["/presets"] = new Presets(),
