@@ -7,7 +7,7 @@ namespace Nocturne
 {
     public class Program
     {
-        public static readonly string Version = "v1.0.1";
+        public static readonly string Version = "v1.1.0";
         async static Task Main(string[] args)
         {
             Console.WriteLine(Colors.Dim("[ Nocturne " + Version + " ]\n"));
