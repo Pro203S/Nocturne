@@ -7,7 +7,7 @@ namespace Nocturne.Discord
     {
         public static readonly string CLIENT_ID = "1528387551449059480";
 
-        private static readonly DiscordRpcClient rpc = new(CLIENT_ID);
+        public static readonly DiscordRpcClient rpc = new(CLIENT_ID);
 
         public static void Initialize()
         {
@@ -18,7 +18,12 @@ namespace Nocturne.Discord
 
             rpc.OnPresenceUpdate += (sender, e) =>
             {
-                Logger.Log("[RPC] Presence updated.");
+                Logger.Log("[RPC] Presence updated. (State = " + e.Presence.State + ")");
+            };
+
+            rpc.OnError += (sender, e) =>
+            {
+                Logger.Log("[RPC] Presence error. " + e.Code + " " + e.Message);
             };
 
             rpc.Initialize();
@@ -26,7 +31,7 @@ namespace Nocturne.Discord
             rpc.SetPresence(new RichPresence()
             {
                 Details = "Working on " + Environment.MachineName,
-                State = "Writing commands",
+                State = "Idle",
                 Timestamps = Timestamps.Now
             });
 

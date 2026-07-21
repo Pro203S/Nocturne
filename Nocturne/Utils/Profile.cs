@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using DiscordRPC;
+using Nocturne.Discord;
 
 namespace Nocturne.Utils
 {
@@ -90,6 +92,12 @@ set NOCTURNE_THEME=nocturne
             Logger.Log(
                 $"[PROCESS] Starting \"{line}\" in {processDirectory}.");
 
+            RPC.rpc.SetPresence(new RichPresence()
+            {
+                Details = "Working on " + Environment.MachineName,
+                State = "Running " + line.Split(' ')[0]
+            });
+
             ProcessStartInfo startInfo = new()
             {
                 FileName = Environment.GetEnvironmentVariable("COMSPEC") ?? "cmd.exe",
@@ -101,9 +109,15 @@ set NOCTURNE_THEME=nocturne
             using Process process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start the profile command.");
 
-            ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
+            void cancelHandler(object? _, ConsoleCancelEventArgs eventArgs)
             {
                 eventArgs.Cancel = true;
+
+                RPC.rpc.SetPresence(new RichPresence()
+                {
+                    Details = "Working on " + Environment.MachineName,
+                    State = "Idle"
+                });
 
                 try
                 {
@@ -116,13 +130,20 @@ set NOCTURNE_THEME=nocturne
                 {
                     // The process may exit while Ctrl+C is being handled.
                 }
-            };
+            }
 
             Console.CancelKeyPress += cancelHandler;
 
             try
             {
                 process.WaitForExit();
+                
+                RPC.rpc.SetPresence(new RichPresence()
+                {
+                    Details = "Working on " + Environment.MachineName,
+                    State = "Idle"
+                });
+
                 Logger.Log(
                     $"[PROCESS] Command exited with code {process.ExitCode}.");
             }

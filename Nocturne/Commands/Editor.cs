@@ -1,4 +1,6 @@
 using System.Text;
+using DiscordRPC;
+using Nocturne.Discord;
 using Nocturne.Utils;
 
 namespace Nocturne.Commands
@@ -48,6 +50,13 @@ namespace Nocturne.Commands
                 throw new DirectoryNotFoundException($"Directory not found: {directory}");
             }
 
+            RPC.rpc.SetPresence(new RichPresence()
+            {
+                Details = "Working on " + Environment.MachineName,
+                State = "Editing a file",
+                Timestamps = Timestamps.Now
+            });
+
             Encoding encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             string newLine = Environment.NewLine;
             string contents = "";
@@ -72,6 +81,13 @@ namespace Nocturne.Commands
             Logger.Log(
                 $"[EDITOR] Opening {(existingFile ? "existing" : "new")} file {filePath}.");
             string[]? editedLines = OpenEditor(initialLines, displayPath);
+
+            RPC.rpc.SetPresence(new RichPresence()
+            {
+                Details = "Working on " + Environment.MachineName,
+                State = "Idle",
+                Timestamps = Timestamps.Now
+            });
 
             if (editedLines is null)
             {
