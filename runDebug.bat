@@ -1,1 +1,1 @@
-.\Nocturne\bin\Debug\net10.0\Nocturne.exe
+.\Nocturne\bin\Debug\net10.0-windows\Nocturne.exe
