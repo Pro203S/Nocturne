@@ -10,20 +10,22 @@ namespace Nocturne
         public static readonly string Version = "v1.0.0";
         async static Task Main(string[] args)
         {
-            RunSafely(Console.Clear);
+            Console.WriteLine(Colors.Dim("[ Nocturne " + Version + " ]\n"));
             RunSafely(() => Console.OutputEncoding = Encoding.UTF8);
             RunSafely(ConsoleFeatures.EnableAnsiColors);
+            RunSafely(Profile.Load);
+
+            Logger.Log("[SYSTEM] Received arguments: " + string.Join(", ", args));
 
             Shell shell = new()
             {
                 Cwd = RunSafely(
                     () => args.ElementAtOrDefault(0) ??
+                        Environment.CurrentDirectory ??
                         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     ".")
             };
 
-            RunSafely(Profile.Load);
-            Logger.Log($"[SYSTEM] Starting Nocturne {Version} (CWD: {shell.Cwd}).");
             RunSafely(ExtensionManager.LoadInstalled);
 
             RunSafely(() =>
