@@ -7,7 +7,7 @@ namespace Nocturne
 {
     public class Program
     {
-        public static readonly string Version = "v0.0.0";
+        public static readonly string Version = "v1.0.0";
         async static Task Main(string[] args)
         {
             RunSafely(Console.Clear);
