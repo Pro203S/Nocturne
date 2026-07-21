@@ -12,6 +12,7 @@ Nocturne is a shell that brings a special experience to the familiar Windows ter
 - Slash commands
 - DLL extensibility
 - Discord RPC integration
+- Built-in file editor
 
 ## Installation
 
